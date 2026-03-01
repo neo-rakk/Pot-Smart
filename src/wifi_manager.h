@@ -4,7 +4,8 @@
 #include <Arduino.h>
 
 void wifi_init(void);
-bool wifi_save_sta_config(const char* ssid, const char* pass);
 bool wifi_is_sta_connected(void);
+bool wifi_is_config_mode(void);
+void wifi_reset_settings(void);
 
 #endif

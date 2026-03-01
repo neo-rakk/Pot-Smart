@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-<title>Pot Connecté</title>
+<title>Pot-Smart V2</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Outfit:wght@300;400;500;600;700&display=swap');
 
@@ -117,8 +117,8 @@ body{
         </svg>
       </div>
       <div>
-        <h1 class="app-title">Pot Connecté</h1>
-        <span class="app-sub">FW 4.0.0.0 · GM-DEV 2026</span>
+        <h1 class="app-title">Pot-Smart V2</h1>
+        <span class="app-sub" id="deviceID">ID: --</span>
       </div>
     </div>
     <div class="hdr-r">
@@ -196,13 +196,16 @@ body{
         <input type="number" id="max" min="0" max="100" class="finp" placeholder="100"/>
       </div>
     </div>
+    <div class="fg" style="margin-top:1rem; font-size:0.75rem; color:var(--muted); font-family:'DM Mono',monospace;">
+        Logic: <span id="logic_mode">--</span> | Thr: <span id="logic_thr">--</span>%
+    </div>
     <button class="btn btn-save" id="save">
       <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M3 3h8l2 2v8a1 1 0 01-1 1H4a1 1 0 01-1-1V3z" stroke="currentColor" stroke-width="1.5"/><rect x="5" y="9" width="6" height="4" rx=".5" stroke="currentColor" stroke-width="1.5"/><path d="M5 3v3h6V3" stroke="currentColor" stroke-width="1.5"/></svg>
       Sauvegarder
     </button>
   </section>
 
-  <div class="footer">GM-DEV 2026 · Pot Connecté IoT · FW 4.0.0.0</div>
+  <div class="footer">GM-DEV 2026 · Pot Connecté IoT · Version 2.0.0</div>
 </div>
 
 <div class="toast" id="toast"></div>
@@ -232,21 +235,34 @@ body{
 
   function updateUI(d){
     if(!d)return;
-    document.getElementById('soil').textContent=d.soil_moisture!==undefined?d.soil_moisture:'--';
-    document.getElementById('temp').textContent=d.temperature!==undefined?d.temperature.toFixed(1):'--';
-    document.getElementById('hum').textContent=d.humidity!==undefined?d.humidity.toFixed(1):'--';
-    document.getElementById('co2').textContent=d.co2!==undefined?d.co2:'--';
-    document.getElementById('tvoc').textContent=d.tvoc!==undefined?d.tvoc:'--';
-    var on=!!d.valve_is_on;
+    document.getElementById('deviceID').textContent='ID: '+(d.device_id||'--');
+
+    var s = d.sensors || d;
+    document.getElementById('soil').textContent=s.soil!==undefined?s.soil:(s.soil_moisture!==undefined?s.soil_moisture:'--');
+    document.getElementById('temp').textContent=s.air_temp!==undefined?s.air_temp.toFixed(1):(s.temperature!==undefined?s.temperature.toFixed(1):'--');
+    document.getElementById('hum').textContent=s.air_hum!==undefined?s.air_hum.toFixed(1):(s.humidity!==undefined?s.humidity.toFixed(1):'--');
+    document.getElementById('co2').textContent=s.co2!==undefined?s.co2:'--';
+    document.getElementById('tvoc').textContent=s.tvoc!==undefined?s.tvoc:'--';
+
+    var on = (d.actuators && d.actuators.pump_state !== undefined) ? d.actuators.pump_state : !!d.valve_is_on;
     document.getElementById('valve').textContent=on?'Ouverte':'Fermée';
     document.getElementById('vDot').className='v-dot'+(on?' on':'');
-    var sv=Math.min(100,Math.max(0,d.soil_moisture||0));
+
+    var soil_val = s.soil !== undefined ? s.soil : (s.soil_moisture || 0);
+    var sv=Math.min(100,Math.max(0,soil_val));
     document.getElementById('soilBar').style.width=sv+'%';
-    document.getElementById('autoMode').checked=!!d.auto_mode;
+
+    document.getElementById('autoMode').checked=d.actuators ? d.actuators.auto_mode : !!d.auto_mode;
     minI.value=d.min_humidity_cfg!=null?d.min_humidity_cfg:'';
     maxI.value=d.max_humidity_cfg!=null?d.max_humidity_cfg:'';
+
+    if(d.logic){
+        document.getElementById('logic_mode').textContent=d.logic.climate_mode;
+        document.getElementById('logic_thr').textContent=d.logic.calculated_threshold_min;
+    }
+
     if(plantSelect.options.length>1){
-      var name=d.plant_name||'';
+      var name=d.plant_profile || d.plant_name || '';
       var exists=Array.from(plantSelect.options).some(function(o){return o.value===name;});
       plantSelect.value=exists?name:(name?'Custom':'');
       syncDisabled();
