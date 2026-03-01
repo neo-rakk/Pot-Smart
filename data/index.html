@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Pot Connecté</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&family=Outfit:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --bg:#0b0f0e;--surface:#111915;--surface2:#182219;
+  --border:rgba(255,255,255,0.07);--accent:#5dde7a;--accent2:#2ab84a;
+  --accent-dim:#1f3d26;--water:#38bdf8;--text:#e8f0ea;--muted:#728c78;
+  --danger:#ef4444;--r:14px;--r-sm:8px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html,body{min-height:100%;font-family:'Outfit',sans-serif;background:var(--bg);color:var(--text)}
+body{
+  background-image:
+    radial-gradient(ellipse 60% 40% at 80% -10%,rgba(93,222,122,.08) 0%,transparent 60%),
+    radial-gradient(ellipse 40% 30% at 0% 80%,rgba(56,189,248,.05) 0%,transparent 50%);
+  min-height:100dvh;padding-bottom:2rem;
+}
+.app{max-width:520px;margin:0 auto;padding:0 1rem}
+
+/* Header */
+.hdr{display:flex;align-items:center;justify-content:space-between;padding:1.2rem 0 1rem;border-bottom:1px solid var(--border);margin-bottom:1.4rem}
+.hdr-l{display:flex;align-items:center;gap:.75rem}
+.logo{display:flex;align-items:center;justify-content:center;width:44px;height:44px;background:var(--accent-dim);border-radius:12px;border:1px solid rgba(93,222,122,.2);flex-shrink:0}
+.app-title{font-size:1.15rem;font-weight:700;letter-spacing:-.02em;line-height:1.2}
+.app-sub{font-family:'DM Mono',monospace;font-size:.62rem;color:var(--muted);letter-spacing:.05em}
+.hdr-r{display:flex;align-items:center;gap:.5rem}
+.dot{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 8px var(--accent);animation:pulse 2.5s ease-in-out infinite}
+.dot.off{background:var(--danger);box-shadow:0 0 8px var(--danger);animation:none}
+.conn-lbl{font-family:'DM Mono',monospace;font-size:.68rem;color:var(--muted)}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+
+/* Grid */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:.7rem;margin-bottom:1rem}
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1rem 1.1rem;position:relative;overflow:hidden;transition:border-color .3s,transform .2s;animation:up .5s ease both}
+.card:hover{transform:translateY(-1px);border-color:rgba(93,222,122,.2)}
+.card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,transparent,rgba(93,222,122,.4),transparent);opacity:0;transition:opacity .3s}
+.card:hover::before{opacity:1}
+.card.wide{grid-column:1/-1;padding:1.2rem 1.3rem .8rem}
+.card:nth-child(1){animation-delay:.05s}.card:nth-child(2){animation-delay:.1s}
+.card:nth-child(3){animation-delay:.15s}.card:nth-child(4){animation-delay:.2s}
+.card:nth-child(5){animation-delay:.25s}.card:nth-child(6){animation-delay:.3s}
+
+.ico{font-size:1.4rem;display:block;margin-bottom:.3rem}
+.card.wide .ico{font-size:1.6rem}
+.lbl{display:block;font-size:.72rem;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:.15rem}
+.val{display:block;font-family:'DM Mono',monospace;font-size:1.6rem;font-weight:500;color:var(--text);line-height:1}
+.card.wide .val{font-size:2.2rem}
+.val em{font-style:normal;font-size:.55em;color:var(--muted);margin-left:2px}
+
+.bar-wrap{height:4px;background:rgba(255,255,255,.07);border-radius:2px;margin-top:.8rem;overflow:hidden}
+.bar{height:100%;background:linear-gradient(90deg,var(--water),var(--accent));border-radius:2px;width:0%;transition:width 1s cubic-bezier(.4,0,.2,1)}
+
+.v-dot{position:absolute;top:.9rem;right:.9rem;width:10px;height:10px;border-radius:50%;background:var(--muted)}
+.v-dot.on{background:var(--water);box-shadow:0 0 8px var(--water)}
+
+/* Panels */
+.panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:1.2rem 1.3rem;margin-bottom:.8rem;animation:up .5s ease both}
+.panel:nth-of-type(1){animation-delay:.35s}.panel:nth-of-type(2){animation-delay:.42s}
+.p-title{font-size:.85rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.1em;margin-bottom:1rem;display:flex;align-items:center;gap:.45rem}
+
+/* Buttons */
+.btn-row{display:flex;gap:.65rem}
+.btn{display:inline-flex;align-items:center;gap:.45rem;padding:.65rem 1.1rem;border:none;border-radius:var(--r-sm);font-family:'Outfit',sans-serif;font-size:.88rem;font-weight:600;cursor:pointer;transition:transform .15s,filter .15s,box-shadow .15s;outline:none;white-space:nowrap}
+.btn:active{transform:scale(.96)}.btn:hover{filter:brightness(1.1)}
+.btn-open{background:linear-gradient(135deg,var(--water) 0%,#0ea5e9 100%);color:#0c1a2e;flex:1}
+.btn-close{background:var(--surface2);color:var(--muted);border:1px solid var(--border);flex:1}
+.btn-close:hover{color:var(--text);border-color:rgba(255,255,255,.15)}
+.btn-save{background:linear-gradient(135deg,var(--accent) 0%,var(--accent2) 100%);color:#071409;width:100%;justify-content:center;padding:.8rem;font-size:.9rem;border-radius:var(--r-sm);margin-top:.5rem;box-shadow:0 4px 20px rgba(93,222,122,.25)}
+.btn-save:hover{box-shadow:0 6px 28px rgba(93,222,122,.4)}
+
+/* Form */
+.fg{margin-bottom:.9rem}
+.flbl{display:block;font-size:.76rem;font-weight:500;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;margin-bottom:.4rem}
+.flbl em{text-transform:none;font-style:normal;font-size:.85em}
+.fsel,.finp{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--r-sm);color:var(--text);font-family:'Outfit',sans-serif;font-size:.9rem;padding:.6rem .85rem;outline:none;transition:border-color .2s,box-shadow .2s;-webkit-appearance:none;appearance:none}
+.fsel{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath d='M2 4l4 4 4-4' stroke='%23728c78' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right .85rem center;padding-right:2.2rem;cursor:pointer}
+.fsel:focus,.finp:focus{border-color:rgba(93,222,122,.45);box-shadow:0 0 0 3px rgba(93,222,122,.08)}
+.finp:disabled,.fsel:disabled{opacity:.4;cursor:not-allowed}
+.rng{display:grid;grid-template-columns:1fr 1fr;gap:.65rem}
+
+/* Toggle */
+.trow{display:flex;align-items:center;justify-content:space-between;padding:.5rem 0;margin-bottom:.6rem}
+.trow .flbl{margin-bottom:0}
+.tgl{position:relative;width:44px;height:24px;flex-shrink:0}
+.tgl input{opacity:0;width:0;height:0}
+.tgl-s{position:absolute;inset:0;background:var(--surface2);border:1px solid var(--border);border-radius:24px;cursor:pointer;transition:background .25s,border-color .25s}
+.tgl-s::before{content:'';position:absolute;width:16px;height:16px;left:3px;top:3px;background:var(--muted);border-radius:50%;transition:transform .25s cubic-bezier(.4,0,.2,1),background .25s}
+.tgl input:checked+.tgl-s{background:var(--accent-dim);border-color:rgba(93,222,122,.4)}
+.tgl input:checked+.tgl-s::before{transform:translateX(20px);background:var(--accent);box-shadow:0 0 6px var(--accent)}
+
+/* Toast */
+.toast{position:fixed;bottom:1.5rem;left:50%;transform:translateX(-50%) translateY(80px);background:var(--surface);border:1px solid rgba(93,222,122,.3);color:var(--text);font-size:.88rem;padding:.65rem 1.2rem;border-radius:99px;box-shadow:0 8px 30px rgba(0,0,0,.5);transition:transform .35s cubic-bezier(.4,0,.2,1),opacity .35s;opacity:0;pointer-events:none;white-space:nowrap;z-index:100}
+.toast.show{transform:translateX(-50%) translateY(0);opacity:1}
+.toast.err{border-color:rgba(239,68,68,.4)}
+
+.footer{text-align:center;font-family:'DM Mono',monospace;font-size:.62rem;color:var(--muted);padding-top:1.4rem;opacity:.5}
+
+@keyframes up{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:360px){.val{font-size:1.3rem}.card.wide .val{font-size:1.9rem}.btn-row{flex-direction:column}}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="hdr">
+    <div class="hdr-l">
+      <div class="logo">
+        <svg width="26" height="26" viewBox="0 0 28 28" fill="none">
+          <circle cx="14" cy="14" r="13" stroke="#5dde7a" stroke-width="1.5"/>
+          <path d="M14 20V12M14 12C14 12 10 10 10 6C10 6 14 7 14 12ZM14 12C14 12 18 10 18 6C18 6 14 7 14 12Z" stroke="#5dde7a" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <div>
+        <h1 class="app-title">Pot Connecté</h1>
+        <span class="app-sub">FW 4.0.0.0 · GM-DEV 2026</span>
+      </div>
+    </div>
+    <div class="hdr-r">
+      <div class="dot" id="dot"></div>
+      <span class="conn-lbl" id="connLbl">En ligne</span>
+    </div>
+  </header>
+
+  <section class="grid">
+    <div class="card wide">
+      <span class="ico">💧</span>
+      <span class="lbl">Humidité Sol</span>
+      <span class="val"><span id="soil">--</span><em>%</em></span>
+      <div class="bar-wrap"><div class="bar" id="soilBar"></div></div>
+    </div>
+    <div class="card">
+      <span class="ico">🌡️</span>
+      <span class="lbl">Température</span>
+      <span class="val"><span id="temp">--</span><em>°C</em></span>
+    </div>
+    <div class="card">
+      <span class="ico">🌫️</span>
+      <span class="lbl">Humidité Air</span>
+      <span class="val"><span id="hum">--</span><em>%</em></span>
+    </div>
+    <div class="card">
+      <span class="ico">🌿</span>
+      <span class="lbl">CO₂</span>
+      <span class="val"><span id="co2">--</span><em>ppm</em></span>
+    </div>
+    <div class="card">
+      <span class="ico">🧪</span>
+      <span class="lbl">TVOC</span>
+      <span class="val"><span id="tvoc">--</span><em>ppb</em></span>
+    </div>
+    <div class="card">
+      <span class="ico">🚿</span>
+      <span class="lbl">Vanne</span>
+      <span class="val" id="valve" style="font-size:1rem;padding-top:.15rem">--</span>
+      <div class="v-dot" id="vDot"></div>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="p-title"><span>⚙️</span> Contrôle Manuel</div>
+    <div class="btn-row">
+      <button class="btn btn-open" id="open">
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M5 8h6M8 5v6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Ouvrir Vanne
+      </button>
+      <button class="btn btn-close" id="close">
+        <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="6" stroke="currentColor" stroke-width="1.5"/><path d="M5.5 5.5l5 5M10.5 5.5l-5 5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+        Fermer Vanne
+      </button>
+    </div>
+  </section>
+
+  <section class="panel">
+    <div class="p-title"><span>🌱</span> Configuration</div>
+    <div class="fg">
+      <label class="flbl">Profil de plante</label>
+      <select id="plant" class="fsel"><option value="">Chargement…</option></select>
+    </div>
+    <div class="trow">
+      <label class="flbl" for="autoMode">Mode Automatique</label>
+      <label class="tgl"><input type="checkbox" id="autoMode"/><span class="tgl-s"></span></label>
+    </div>
+    <div class="rng">
+      <div class="fg">
+        <label class="flbl">Min <em>(%)</em></label>
+        <input type="number" id="min" min="0" max="100" class="finp" placeholder="0"/>
+      </div>
+      <div class="fg">
+        <label class="flbl">Max <em>(%)</em></label>
+        <input type="number" id="max" min="0" max="100" class="finp" placeholder="100"/>
+      </div>
+    </div>
+    <button class="btn btn-save" id="save">
+      <svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M3 3h8l2 2v8a1 1 0 01-1 1H4a1 1 0 01-1-1V3z" stroke="currentColor" stroke-width="1.5"/><rect x="5" y="9" width="6" height="4" rx=".5" stroke="currentColor" stroke-width="1.5"/><path d="M5 3v3h6V3" stroke="currentColor" stroke-width="1.5"/></svg>
+      Sauvegarder
+    </button>
+  </section>
+
+  <div class="footer">GM-DEV 2026 · Pot Connecté IoT · FW 4.0.0.0</div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+  var plantSelect=document.getElementById('plant'),minI=document.getElementById('min'),maxI=document.getElementById('max');
+  var profiles=[];
+
+  function toast(msg,err){
+    var t=document.getElementById('toast');
+    t.textContent=(err?'❌  ':'✅  ')+msg;
+    t.className='toast show'+(err?' err':'');
+    clearTimeout(t._t);
+    t._t=setTimeout(function(){t.classList.remove('show');},2800);
+  }
+
+  function setOnline(ok){
+    document.getElementById('dot').className='dot'+(ok?'':' off');
+    document.getElementById('connLbl').textContent=ok?'En ligne':'Hors ligne';
+  }
+
+  function syncDisabled(){
+    var locked=plantSelect.value&&plantSelect.value!=='Custom';
+    minI.disabled=maxI.disabled=locked;
+  }
+
+  function updateUI(d){
+    if(!d)return;
+    document.getElementById('soil').textContent=d.soil_moisture!==undefined?d.soil_moisture:'--';
+    document.getElementById('temp').textContent=d.temperature!==undefined?d.temperature.toFixed(1):'--';
+    document.getElementById('hum').textContent=d.humidity!==undefined?d.humidity.toFixed(1):'--';
+    document.getElementById('co2').textContent=d.co2!==undefined?d.co2:'--';
+    document.getElementById('tvoc').textContent=d.tvoc!==undefined?d.tvoc:'--';
+    var on=!!d.valve_is_on;
+    document.getElementById('valve').textContent=on?'Ouverte':'Fermée';
+    document.getElementById('vDot').className='v-dot'+(on?' on':'');
+    var sv=Math.min(100,Math.max(0,d.soil_moisture||0));
+    document.getElementById('soilBar').style.width=sv+'%';
+    document.getElementById('autoMode').checked=!!d.auto_mode;
+    minI.value=d.min_humidity_cfg!=null?d.min_humidity_cfg:'';
+    maxI.value=d.max_humidity_cfg!=null?d.max_humidity_cfg:'';
+    if(plantSelect.options.length>1){
+      var name=d.plant_name||'';
+      var exists=Array.from(plantSelect.options).some(function(o){return o.value===name;});
+      plantSelect.value=exists?name:(name?'Custom':'');
+      syncDisabled();
+    }
+  }
+
+  function fetchStatus(){
+    fetch('/api/status')
+      .then(function(r){if(!r.ok)throw 0;return r.json();})
+      .then(function(d){setOnline(true);updateUI(d);})
+      .catch(function(){setOnline(false);});
+  }
+
+  fetch('/api/plant_profiles')
+    .then(function(r){return r.json();})
+    .then(function(list){
+      profiles=list;
+      plantSelect.innerHTML='<option value="">— Sélectionner —</option>';
+      list.forEach(function(p){
+        var o=document.createElement('option');
+        o.value=p.name;o.textContent=p.name;plantSelect.appendChild(o);
+      });
+      var c=document.createElement('option');c.value='Custom';c.textContent='Custom';plantSelect.appendChild(c);
+      fetchStatus();
+    })
+    .catch(function(){
+      plantSelect.innerHTML='<option value="">Erreur chargement</option>';
+      fetchStatus();
+    });
+
+  plantSelect.addEventListener('change',function(){
+    var sel=plantSelect.value;
+    if(sel&&sel!=='Custom'){
+      var p=profiles.find(function(x){return x.name===sel;});
+      if(p){minI.value=p.default_min_humidity;maxI.value=p.default_max_humidity;}
+    }
+    syncDisabled();
+  });
+
+  document.getElementById('save').addEventListener('click',function(){
+    var plant=plantSelect.value,mn=parseInt(minI.value),mx=parseInt(maxI.value);
+    if(!plant){toast('Sélectionnez un profil',true);return;}
+    if(isNaN(mn)||isNaN(mx)||mn<0||mx>100||mn>=mx){toast('Vérifiez Min < Max (0–100)',true);return;}
+    fetch('/api/config',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({plant_name:plant,min_humidity:mn,max_humidity:mx,auto_mode:document.getElementById('autoMode').checked})
+    })
+    .then(function(r){if(!r.ok)throw new Error(r.statusText);})
+    .then(function(){toast('Configuration sauvegardée');fetchStatus();})
+    .catch(function(e){toast('Erreur: '+e.message,true);});
+  });
+
+  function valve(action){
+    fetch('/api/valve',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({action:action})})
+    .then(function(r){if(!r.ok)throw new Error(r.statusText);})
+    .then(function(){toast('Vanne '+(action==='open'?'ouverte':'fermée'));fetchStatus();})
+    .catch(function(e){toast('Erreur vanne: '+e.message,true);});
+  }
+
+  document.getElementById('open').addEventListener('click',function(){valve('open');});
+  document.getElementById('close').addEventListener('click',function(){valve('close');});
+
+  fetchStatus();
+  setInterval(fetchStatus,5000);
+})();
+</script>
+</body>
+</html>
