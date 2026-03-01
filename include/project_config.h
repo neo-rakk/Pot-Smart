@@ -3,24 +3,28 @@
 
 #include <Arduino.h>
 
-// WiFi Configuration (SoftAP)
-#define AP_SSID "PotConnecte-Config"
-#define AP_PASS "admin1234"
+// WiFi Configuration (SoftAP for WiFiManager)
+#define AP_SSID_PREFIX "Pot-Smart-Config-"
 
 // mDNS Configuration
-#define MDNS_HOSTNAME "pot-connecte"
-#define MDNS_INSTANCE "ESP32_Watering_Pot"
+#define MDNS_HOSTNAME_PREFIX "pot-"
 
 // Hardware Pinout (Arduino Pins)
 #define RELAY_GPIO 26
 #define SOIL_ADC_CH 34 // GPIO34
 #define DHT22_GPIO 14
-#define OLED_I2C_PORT I2C_NUM_1
-#define OLED_SDA_GPIO 21
-#define OLED_SCL_GPIO 22
-#define SGP30_I2C_PORT I2C_NUM_0
-#define SGP30_SDA_GPIO 4
-#define SGP30_SCL_GPIO 5
+
+// Consolidated I2C
+#define I2C_SDA_GPIO 21
+#define I2C_SCL_GPIO 22
+
+// Status LED & Reset Button
+#define STATUS_LED_GPIO 2
+#define RESET_BUTTON_GPIO 0
+
+// Soil Moisture Calibration (Example values: raw readings for Air and Water)
+#define SOIL_AIR_VALUE 3200
+#define SOIL_WATER_VALUE 1500
 
 typedef struct {
     float temperature;
@@ -29,5 +33,11 @@ typedef struct {
     uint16_t co2;
     uint16_t tvoc;
 } sensor_data_t;
+
+typedef struct {
+    int base_threshold_min;
+    int calculated_threshold_min;
+    char climate_mode[16];
+} logic_data_t;
 
 #endif // PROJECT_CONFIG_H

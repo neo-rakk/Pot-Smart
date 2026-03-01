@@ -11,5 +11,6 @@ sensor_data_t sensors_get_latest_data(void);
 int sensors_read_soil_moisture(void);
 bool sensors_read_dht22(float *temperature, float *humidity);
 bool sensors_read_air_quality(uint16_t *co2, uint16_t *tvoc);
+bool sensors_are_healthy(void);
 
 #endif

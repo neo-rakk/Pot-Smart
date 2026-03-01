@@ -3,16 +3,40 @@
 #include "sensors.h"
 #include "relay.h"
 #include "wifi_manager.h"
+#include "arrosage.h"
 #include <ArduinoJson.h>
 #include <WebServer.h>
 
 extern WebServer server;
+extern String device_id;
 
 static void status_handler() {
     JsonDocument doc;
     sensor_data_t data = sensors_get_latest_data();
     plant_config_t cfg = get_plant_config();
+    logic_data_t logic = arrosage_get_logic_data();
 
+    doc["device_id"] = device_id;
+    doc["wifi_rssi"] = WiFi.RSSI();
+    doc["plant_profile"] = cfg.plant_name;
+
+    JsonObject sensors = doc.createNestedObject("sensors");
+    sensors["soil"] = data.soil_moisture;
+    sensors["air_temp"] = data.temperature;
+    sensors["air_hum"] = data.humidity;
+    sensors["co2"] = data.co2;
+    sensors["tvoc"] = data.tvoc;
+
+    JsonObject actuators = doc.createNestedObject("actuators");
+    actuators["pump_state"] = relay_is_on();
+    actuators["auto_mode"] = cfg.auto_mode;
+
+    JsonObject logic_obj = doc.createNestedObject("logic");
+    logic_obj["base_threshold_min"] = logic.base_threshold_min;
+    logic_obj["calculated_threshold_min"] = logic.calculated_threshold_min;
+    logic_obj["climate_mode"] = logic.climate_mode;
+
+    // Backward compatibility or for index.html if not updated yet
     doc["soil_moisture"] = data.soil_moisture;
     doc["temperature"] = data.temperature;
     doc["humidity"] = data.humidity;
